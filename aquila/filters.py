@@ -14,11 +14,11 @@ import scipy.ndimage.filters
 from sklearn import svm 
 from sklearn.externals import joblib
 import tempfile 
-import utils.obj
-from utils import pycvutils
+from . import utils.obj
+from .utils import pycvutils
 import dlib
-from score_eyes import ScoreEyes
-from parse_faces import FindAndParseFaces
+from .score_eyes import ScoreEyes
+from .parse_faces import FindAndParseFaces
 import cPickle
 
 _log = logging.getLogger(__name__)

@@ -13,8 +13,8 @@ from PIL import Image
 import random
 import tornado.httpclient
 import tornado.gen
-import utils.http
-import utils.sync
+from . import http
+from . import sync
 
 _log = logging.getLogger(__name__)
 
@@ -85,14 +85,14 @@ class PILImageUtils(object):
             return Image.fromarray(im)
 
     @classmethod
-    @utils.sync.optional_sync
+    @sync.optional_sync
     @tornado.gen.coroutine
     def download_image(cls, url):
         '''Downloads an image from a given url.
 
         Returns the image in PIL format.
         '''
-        response = yield utils.http.send_request(
+        response = yield http.send_request(
             tornado.httpclient.HTTPRequest(url,
                                            request_timeout=60.0,
                                            connect_timeout=10.0),

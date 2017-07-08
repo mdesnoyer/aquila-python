@@ -17,21 +17,20 @@ from grpc.beta import implementations
 from grpc.beta.interfaces import ChannelConnectivity
 import hashlib
 import logging
-import model.errors
+import aquila.errors
 import numpy as np
 import pandas
 from PIL import Image
 import os
-import pyflann
 import random
 import time
 import tempfile
 import threading
 import tornado.locks
 import tornado.gen
-import utils.obj
-import utils.sync
-from utils import statemon
+from . import utils.obj
+from . import utils.sync
+from .utils import statemon
 import weakref
 
 _log = logging.getLogger(__name__)
@@ -311,8 +310,6 @@ class Predictor(object):
 
         Returns: (predicted valence score, feature vector, model_version) 
                  any can be None
-
-        Raises: NotTrainedError if it has been called before train() has.
         '''
         cur_try = 0
         kwargs['timeout'] = timeout
@@ -324,7 +321,7 @@ class Predictor(object):
                 raise tornado.gen.Return((score, vec, vers))
             except tornado.gen.Return:
                 raise
-            except model.errors.PredictionError as e:
+            except aquila.errors.PredictionError as e:
                 _log.warn('Problem scoring image. Retrying: %s' % e)
                 delay = (1 << cur_try) * base_time * random.random()
                 yield tornado.gen.sleep(delay)
@@ -334,9 +331,9 @@ class Predictor(object):
                 delay = (1 << cur_try) * base_time * random.random()
                 yield tornado.gen.sleep(delay)
         statemon.state.increment('prediction_error')
-        if isinstance(e, model.errors.PredictionError):
+        if isinstance(e, aquila.errors.PredictionError):
             raise e
-        raise model.errors.PredictionError(str(e))
+        raise aquila.errors.PredictionError(str(e))
 
     @tornado.gen.coroutine
     def _predict(self, image, *args, **kwargs):
@@ -347,8 +344,6 @@ class Predictor(object):
 
         Returns: (predicted valence score, feature vector, model_version) 
                  any can be None
-
-        Raises: NotTrainedError if it has been called before train() has.
         '''
         raise NotImplementedError()
 
@@ -516,7 +511,7 @@ class DeepnetPredictor(Predictor):
         timeout: How long the request lasts for before expiring.
         '''
         if self._shutting_down:
-            raise model.errors.PredictionError('Object is shutting down.')
+            raise aquila.errors.PredictionError('Object is shutting down.')
 
         # Wait for the connection to be ready
         with self._ready_lock:
@@ -541,7 +536,7 @@ class DeepnetPredictor(Predictor):
         except Exception as e:
             msg = 'RPC Error: %s' % e
             _log.error(msg)
-            raise model.errors.PredictionError(msg)
+            raise aquila.errors.PredictionError(msg)
         finally:
             with self._cv:
                 self.active -= 1
@@ -550,7 +545,7 @@ class DeepnetPredictor(Predictor):
         if response is None:
             msg = 'RPC Error: response was None'
             _log.error(msg)
-            raise model.errors.PredictionError(msg)
+            raise aquila.errors.PredictionError(msg)
 
         vers = response.model_version or 'aqv1.1.250'
 
@@ -596,11 +591,3 @@ class DeepnetPredictor(Predictor):
 class Error(Exception):
     '''Base class for exceptions in this module.'''
     pass
-
-class NotTrainedError(Error):
-    def __init__(self, message = ''):
-        Error.__init__(self, "The model isn't trained yet: %s" % message)
-
-class AlreadyTrainedError(Error):
-    def __init__(self, message = ''):
-        Error.__init__(self, "The model is already trained: %s" % message)

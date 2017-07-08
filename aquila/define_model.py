@@ -1,26 +1,21 @@
 #!/usr/bin/env python
 '''Routine that creates a definition of the model and saves it to a file.'''
-import os.path
-import sys
-__base_path__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if sys.path[0] != __base_path__:
-    sys.path.insert(0, __base_path__)
-
 import dlib
 import logging
 import model
-import model.clip_finder
-import model.features
-import model.filters
-import model.local_video_searcher
-from model.local_video_searcher import (MINIMIZE, MAXIMIZE,
-                                        NORMALIZE, PEN_LOW_HALF,
-                                        PEN_HIGH_HALF,
-                                        PEN_ZERO)
-from model.parse_faces import MultiStageFaceParser 
-import model.predictor
-from model.score_eyes import ScoreEyes
+import clip_finder
+import features
+import filters
+import local_video_searcher
+from local_video_searcher import (MINIMIZE, MAXIMIZE,
+                                  NORMALIZE, PEN_LOW_HALF,
+                                  PEN_HIGH_HALF,
+                                  PEN_ZERO)
+from parse_faces import MultiStageFaceParser 
+import predictor
+from score_eyes import ScoreEyes
 from optparse import OptionParser
+import os.path
 import pickle
 import scenedetect.detectors
 
@@ -47,23 +42,23 @@ if __name__ == '__main__':
         print('The eye classifier is from an old version of scikit learn')
         eye_classifier.scaler.scale_ = eye_classifier.scaler.__dict__['std_']
 
-    pix_gen = model.features.PixelVarGenerator()
-    sad_gen = model.features.SADGenerator()
+    pix_gen = features.PixelVarGenerator()
+    sad_gen = features.SADGenerator()
     #text_gen = model.features.TextGeneratorSlow()
-    face_gen = model.features.FaceGenerator(face_finder)
-    eye_gen = model.features.ClosedEyeGenerator(face_finder, eye_classifier)
-    vibrance_gen = model.features.VibranceGenerator()
-    blur_gen = model.features.BlurGenerator()
-    ent_gen = model.features.EntropyGenerator()
-    face_blur_gen = model.features.FacialBlurGenerator(face_finder)
-    sat_gen = model.features.SaturationGenerator()
-    bright_gent = model.features.BrightnessGenerator()
+    face_gen = features.FaceGenerator(face_finder)
+    eye_gen = features.ClosedEyeGenerator(face_finder, eye_classifier)
+    vibrance_gen = features.VibranceGenerator()
+    blur_gen = features.BlurGenerator()
+    ent_gen = features.EntropyGenerator()
+    face_blur_gen = features.FacialBlurGenerator(face_finder)
+    sat_gen = features.SaturationGenerator()
+    bright_gent = features.BrightnessGenerator()
 
     filters = [
-        model.filters.SceneChangeFilter(),
-        model.filters.ThreshFilt(80, 'pixvar'),
-        model.filters.FaceFilter(),
-        model.filters.EyeFilter()]
+        filters.SceneChangeFilter(),
+        filters.ThreshFilt(80, 'pixvar'),
+        filters.FaceFilter(),
+        filters.EyeFilter()]
 
     feature_stuff = dict()
     feature_stuff['pixvar'] = {'generator':pix_gen, 'cache':True,
@@ -110,12 +105,12 @@ if __name__ == '__main__':
     penalties = {x:feature_stuff[x]['penalty'] for x in feats_to_use}
     dependencies = {x:feature_stuff[x]['dependencies'] for x in feats_to_use}
 
-    combiner = model.local_video_searcher.MultiplicativeCombiner(
+    combiner = local_video_searcher.MultiplicativeCombiner(
         penalties=penalties,
         weight_valence=weight_valence,
         dependencies=dependencies)
         
-    video_searcher = model.local_video_searcher.LocalSearcher(
+    video_searcher = local_video_searcher.LocalSearcher(
         None,
         feature_generators=feature_generators,
         combiner=combiner,
@@ -133,7 +128,7 @@ if __name__ == '__main__':
         n_thumbs=6,
         startend_clip=0.025)
 
-    clip_finder = model.clip_finder.ClipFinder(
+    clip_finder = clip_finder.ClipFinder(
         None,
         scenedetect.detectors.ContentDetector(30.0),
         model.features.ObjectActionGenerator(),

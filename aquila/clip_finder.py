@@ -4,21 +4,13 @@ Copyright: 2016 Neon Labs
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
         Nick Dufour (dufour@neon-lab.com)
 '''
-
-import os
-import os.path
-import sys
-__base_path__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if sys.path[0] != __base_path__:
-    sys.path.insert(0, __base_path__)
-
 from collections import defaultdict
 from collections import Counter
 import cv2
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
-import model.features
+from . import model.features
 import random
 from scipy import stats
 import Queue
@@ -26,8 +18,8 @@ from threading import Thread
 from threading import Lock
 from threading import Event
 import time
-from utils.options import options, define
-from utils import pycvutils
+from .utils.options import options, define
+from .utils import pycvutils
 
 define('workers', default=2, help='Number of worker threads')
 
@@ -56,26 +48,6 @@ class ClipFinder(object):
         self.cross_scene_boundary = cross_scene_boundary
         self.min_scene_piece = min_scene_piece
         self.custom_predictor = None
-
-    def update_processing_strategy(self, processing_strategy):
-        '''
-        Changes the state of the video client based on the processing
-        strategy. See the ProcessingStrategy object in cmsdb/neondata.py
-        '''
-        self.startend_clip = processing_strategy.startend_clip
-        self.processing_time_ratio = \
-          processing_strategy.clip_processing_time_ratio
-        self.cross_scene_boundary = \
-          processing_strategy.clip_cross_scene_boundary
-        self.min_scene_piece = processing_strategy.min_scene_piece
-        self.scene_detector.threshold = processing_strategy.scene_threshold
-        if processing_strategy.custom_predictor:
-            self.custom_predictor = model.load_custom_predictor(
-                processing_strategy.custom_predictor)
-        else:
-            self.custom_predictor = None
-        self.weight_dict['custom'] = \
-          processing_strategy.custom_predictor_weight
 
     def reset(self):
         self.scene_cut_generator.reset()

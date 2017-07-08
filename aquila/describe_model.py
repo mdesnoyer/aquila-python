@@ -6,9 +6,6 @@ Author: Mark Desnoyer (desnoyer@neon-lab.com)
 '''
 USAGE='%prog <model_file>'
 
-import os.path
-import sys
-
 import model
 from optparse import OptionParser
 import re

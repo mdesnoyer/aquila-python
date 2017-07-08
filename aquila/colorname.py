@@ -1,12 +1,7 @@
 import os.path
-import sys
 import numpy as np
 from scipy.stats import entropy
 from numpy.linalg import norm
-
-__base_path__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if sys.path[0] != __base_path__:
-    sys.path.insert(0, __base_path__)
 
 w2c_data = np.load(os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                 'data/w2c.dat')))

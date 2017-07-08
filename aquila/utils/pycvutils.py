@@ -10,8 +10,7 @@ Copyright 2014 Neon Labs
 import cv2
 import logging
 import numpy as np
-from cvutils import imageutils
-from cvutils import smartcrop
+import imageutils
 
 _log = logging.getLogger(__name__)
 

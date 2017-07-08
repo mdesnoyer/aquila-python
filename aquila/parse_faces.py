@@ -8,9 +8,8 @@ be provided when it is initialized.
 '''
 import numpy as np
 import cv2
-import os
 import dlib
-from utils import pycvutils
+from .utils import pycvutils
 
 comp_dict = {}
 comp_dict['face'] = range(17)

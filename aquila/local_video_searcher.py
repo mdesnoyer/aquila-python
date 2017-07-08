@@ -168,14 +168,13 @@ import psutil
 
 import cv2
 import model
-import model.errors
+import aquila.errors
 import numpy as np
-from model.colorname import ColorName
-from utils import statemon
-from utils import pycvutils
-from utils.options import define, options
-from model.metropolisHastingsSearch import MCMH
-from grpc.framework.interfaces.face.face import ExpirationError
+from .colorname import ColorName
+from .utils import statemon
+from .utils import pycvutils
+from .utils.options import define, options
+from .metropolisHastingsSearch import MCMH
 
 import concurrent.futures
 
@@ -1549,7 +1548,7 @@ class LocalSearcher(object):
             msg = ('Too many frames failed to be scored for video %s' %
                    self.video_name)
             _log.error(msg)
-            raise model.errors.PredictionError(msg)
+            raise aquila.errors.PredictionError(msg)
 
         result_objs = self.results.get_results()
 
@@ -1759,7 +1758,7 @@ class LocalSearcher(object):
         try:
             (indi_framescore, features, model_vers) = self.predictor.predict(
                 best_frame)
-        except model.errors.PredictionError as e:
+        except aquila.errors.PredictionError as e:
             statemon.state.increment('unable_to_score_frame')
             _log.warn('Problem obtaining score localsearch frame %s: %s' %
                       (best_frameno, e))
@@ -1805,7 +1804,7 @@ class LocalSearcher(object):
         try:
             frame_score, features, model_vers = self.predictor.predict(
                 frames[0])
-        except model.errors.PredictionError as e:
+        except aquila.errors.PredictionError as e:
             statemon.state.increment('unable_to_score_frame')
             _log.warn('Problem obtaining score for frame %s: %s' %
                       (frameno, e))
@@ -1905,10 +1904,10 @@ class LocalSearcher(object):
                     cur_frame=self.cur_frame)
             if not more_data:
                 if self.cur_frame is None:
-                    raise model.errors.VideoReadError(
+                    raise aquila.errors.VideoReadError(
                             "Could not read the video")
             more_data, frame = self.video.read()
-        except model.errors.VideoReadError:
+        except aquila.errors.VideoReadError:
             statemon.state.increment('cv_video_read_error')
             frame = None
         except Exception as e:

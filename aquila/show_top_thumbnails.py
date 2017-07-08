@@ -4,15 +4,12 @@
 Copyright: 2013 Neon Labs
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 '''
-import os.path
-import sys
-
 import cProfile as profile
 import cv2
 import logging
 import matplotlib.pyplot as plt
 import model
-import model.predictor
+import predictor
 import numpy as np
 import time
 import utils.autoscale
@@ -61,11 +58,11 @@ def main(options):
     conn = utils.autoscale.MultipleAutoScaleGroups(
         options.autoscale_groups.split(','))
     conn.get_ip()
-    predictor = model.predictor.DeepnetPredictor(aquila_connection=conn)
-    predictor.connect()
+    pred = predictor.DeepnetPredictor(aquila_connection=conn)
+    pred.connect()
 
     try:
-        mod = model.generate_model(options.model, predictor)
+        mod = model.generate_model(options.model, pred)
 
         if options.video is not None:
             run_one_video(mod, options.video, options.n, options.output,
@@ -75,7 +72,7 @@ def main(options):
                 run_one_video(mod, line.strip(), options.n, None,
                               options.batch)
     finally:
-        predictor.shutdown()
+        pred.shutdown()
 
 if __name__ == '__main__':
     parser = OptionParser()

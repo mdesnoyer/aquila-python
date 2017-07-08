@@ -3,11 +3,6 @@
 Copyright: 2013 Neon Labs
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 '''
-import os.path
-import sys
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..')))
-
 import concurrent.futures
 import logging
 import multiprocessing
@@ -21,9 +16,9 @@ import tornado.httpclient
 import tornado.ioloop
 import tornado.locks
 import urlparse
-import utils.logs
-from utils import statemon
-import utils.sync
+from . import logs
+from . import statemon
+from . import sync
 
 _log = logging.getLogger(__name__)
 
@@ -56,7 +51,7 @@ class HTTPVerbs(object):
 # TODO(mdesnoyer): Handle the stack on async requests so that the
 # callback will have a stack that looks like the original request
 # being called.
-@utils.sync.optional_sync
+@sync.optional_sync
 @tornado.gen.coroutine
 def send_request(request, ntries=5, do_logging=True, base_delay=0.2,
                  no_retry_codes=None, retry_forever_codes=None):
@@ -176,15 +171,15 @@ class RequestPool(object):
                       single thread. It will be more efficient though.
         '''
         if limit_for_subprocs:
-            self._lock = utils.sync.FutureLock(
+            self._lock = sync.FutureLock(
                 multiprocessing.BoundedSemaphore(max_connections))
         elif thread_safe:
-            self._lock = utils.sync.FutureLock(
+            self._lock = sync.FutureLock(
                 threading.BoundedSemaphore(max_connections))
         else:
             self._lock = tornado.locks.BoundedSemaphore(max_connections)
 
-    @utils.sync.optional_sync
+    @sync.optional_sync
     @tornado.gen.coroutine
     def send_request(self, request, **kwargs):
         '''Sends a request to the pool.

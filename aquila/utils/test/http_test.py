@@ -5,11 +5,6 @@ Unittests for the http module
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 Copyright 2013 Neon Labs
 '''
-import os.path
-import sys
-sys.path.insert(0,os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..')))
-
 from concurrent.futures import Future, ThreadPoolExecutor
 import logging
 from mock import patch, MagicMock
@@ -18,14 +13,14 @@ import multiprocessing
 import random
 import socket
 from StringIO import StringIO
-import test_utils.neontest
+from .. import neontest
 import threading
 import time
 import tornado.gen
 from tornado.httpclient import HTTPResponse, HTTPRequest, HTTPError
 import unittest
-import utils.http
-import utils.neon
+from .. import http
+from .. import neon
 
 _log = logging.getLogger(__name__)
 
@@ -35,15 +30,15 @@ def create_valid_ack():
                             buffer=StringIO('{"error":nil}'))
     return request, response
 
-class TestSendRequest(test_utils.neontest.AsyncTestCase):
+class TestSendRequest(neontest.AsyncTestCase):
     def setUp(self):
         super(TestSendRequest, self).setUp()
         self.sync_patcher = \
-          patch('utils.http.tornado.httpclient.AsyncHTTPClient')
+          patch('http.tornado.httpclient.AsyncHTTPClient')
 
         self.mock_client = self._future_wrap_mock(
             self.sync_patcher.start()().fetch)
-        logging.getLogger('utils.http').reset_sample_counters()
+        logging.getLogger('http').reset_sample_counters()
 
     def tearDown(self):
         self.sync_patcher.stop()
@@ -53,11 +48,11 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
         request, response = create_valid_ack()
         self.mock_client.side_effect = [response]
 
-        self.assertEqual(utils.http.send_request(request), response)
+        self.assertEqual(http.send_request(request), response)
 
     def test_invalid_url(self):
         with self.assertLogExists(logging.ERROR, 'Invalid url to request'):
-            response = utils.http.send_request(
+            response = http.send_request(
                 HTTPRequest('file:///some/local/file'))
 
         self.assertEquals(response.code, 400)
@@ -75,8 +70,8 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
 
         with self.assertLogExists(logging.WARNING,
                                   'Error sending request to.* 600'):
-            found_response = utils.http.send_request(request, 3,
-                                                     base_delay=0.02)
+            found_response = http.send_request(request, 3,
+                                               base_delay=0.02)
 
         self.assertEqual(found_response, valid_response)
 
@@ -91,8 +86,8 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
             ]
 
         with self.assertLogExists(logging.WARNING, 'Error sending.*600'):
-            found_response = utils.http.send_request(request, 3,
-                                                     base_delay=0.02)
+            found_response = http.send_request(request, 3,
+                                               base_delay=0.02)
 
         self.assertRegexpMatches(found_response.error.message, '.*600')
 
@@ -107,8 +102,8 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
 
         with self.assertLogExists(logging.WARNING,
                                   'Error sending request to .*500'):
-            found_response = utils.http.send_request(request, 3,
-                                                     base_delay=0.02)
+            found_response = http.send_request(request, 3,
+                                               base_delay=0.02)
 
         self.assertEqual(found_response, valid_response)
 
@@ -118,8 +113,8 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
         self.mock_client.side_effect = [HTTPError(404),
                                         ok_error]
 
-        found_response = utils.http.send_request(request, 3,
-                                                 no_retry_codes=[405])
+        found_response = http.send_request(request, 3,
+                                           no_retry_codes=[405])
         self.assertEqual(found_response.error, ok_error)
         self.assertEqual(self.mock_client.call_count, 2)
 
@@ -133,8 +128,8 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
 
         with self.assertLogExists(logging.ERROR,
                                   'Socket resolution error'):
-            found_response = utils.http.send_request(request, 3,
-                                                     base_delay=0.02)
+            found_response = http.send_request(request, 3,
+                                               base_delay=0.02)
 
         self.assertEqual(found_response, valid_response)
 
@@ -149,9 +144,9 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
 
         with self.assertLogNotExists(logging.WARNING,
                                      'Error sending request to .*500'):
-            found_response = utils.http.send_request(request, 3,
-                                                     do_logging=False,
-                                                     base_delay=0.02)
+            found_response = http.send_request(request, 3,
+                                               do_logging=False,
+                                               base_delay=0.02)
 
         self.assertEqual(found_response, valid_response)
 
@@ -167,8 +162,8 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
 
         with self.assertLogExists(logging.WARNING,
                                   'Error sending request to .*500'):
-            found_response = utils.http.send_request(request, 3,
-                                                     base_delay=0.02)
+            found_response = http.send_request(request, 3,
+                                               base_delay=0.02)
 
         self.assertEqual(found_response, valid_response)
 
@@ -182,8 +177,8 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
             valid_response
             ]
         
-        found_response = utils.http.send_request(request, 2,
-                                                 base_delay=0.02)
+        found_response = http.send_request(request, 2,
+                                           base_delay=0.02)
 
         self.assertEqual(found_response.error.code, 500)
         self.assertRegexpMatches(str(found_response.error),
@@ -194,7 +189,7 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
         request, response = create_valid_ack()
         self.mock_client.side_effect = [response]
         
-        found_response = yield utils.http.send_request(request, async=True)
+        found_response = yield http.send_request(request, async=True)
 
         self.assertEqual(found_response, response)
 
@@ -203,7 +198,7 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
         request, response = create_valid_ack()
         self.mock_client.side_effect = [response]
 
-        found_response = yield tornado.gen.Task(utils.http.send_request,
+        found_response = yield tornado.gen.Task(http.send_request,
                                                 request)
 
         self.assertEqual(found_response, response)
@@ -220,9 +215,9 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
             ]
 
         with self.assertLogExists(logging.WARNING, 'Error sending.*600'):
-            found_response = yield utils.http.send_request(request, 3,
-                                                           base_delay=0.02,
-                                                           async=True)
+            found_response = yield http.send_request(request, 3,
+                                                     base_delay=0.02,
+                                                     async=True)
             self.assertEqual(found_response, valid_response)
 
     @tornado.testing.gen_test
@@ -236,7 +231,7 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
 
         with self.assertLogExists(logging.ERROR,
                                   'Socket resolution error'):
-            found_response = yield utils.http.send_request(
+            found_response = yield http.send_request(
                 HTTPRequest('http://sdjfaoei.com'),
                 3,
                 base_delay=0.02,
@@ -255,29 +250,29 @@ class TestSendRequest(test_utils.neontest.AsyncTestCase):
             ]
         
         
-        found_response = yield utils.http.send_request(request, 2,
-                                                       base_delay=0.02,
-                                                       async=True)
+        found_response = yield http.send_request(request, 2,
+                                                 base_delay=0.02,
+                                                 async=True)
 
         self.assertEqual(found_response.error.code, 500)
         self.assertRegexpMatches(str(found_response.error),
                                  'Internal Server Error')
 
-class TestRequestPool(test_utils.neontest.AsyncTestCase):
+class TestRequestPool(neontest.AsyncTestCase):
     def setUp(self):
         super(TestRequestPool, self).setUp()
-        self.pool = utils.http.RequestPool(5)
+        self.pool = http.RequestPool(5)
         self.patcher = \
-          patch('utils.http.tornado.httpclient.AsyncHTTPClient')
+          patch('http.tornado.httpclient.AsyncHTTPClient')
         self.mock_client = self._future_wrap_mock(
             self.patcher.start()().fetch)
-        logging.getLogger('utils.http').reset_sample_counters()
+        logging.getLogger('http').reset_sample_counters()
         
     def tearDown(self):
         self.patcher.stop()
         super(TestRequestPool, self).tearDown()
 
-    @utils.sync.optional_sync
+    @sync.optional_sync
     @tornado.gen.coroutine
     def _send_request(self, *args, **kwargs):
         kwargs['async'] = True
@@ -448,7 +443,7 @@ class TestRequestPool(test_utils.neontest.AsyncTestCase):
 class TestRequestPoolInThread(TestRequestPool):
     def setUp(self):
         super(TestRequestPoolInThread, self).setUp()
-        self.pool = utils.http.RequestPool(5, thread_safe=True)
+        self.pool = http.RequestPool(5, thread_safe=True)
         self.n_sent = 0
         
     def tearDown(self):
@@ -460,7 +455,7 @@ class TestRequestPoolInThread(TestRequestPool):
         self.n_sent -= 1
         return val
 
-    @utils.sync.optional_sync
+    @sync.optional_sync
     @tornado.gen.coroutine
     def _send_request(self, *args, **kwargs):
         pool = ThreadPoolExecutor(1)
@@ -468,16 +463,16 @@ class TestRequestPoolInThread(TestRequestPool):
         raise tornado.gen.Return(val)
         
 
-class TestRequestPoolInSubprocess(test_utils.neontest.AsyncTestCase):
+class TestRequestPoolInSubprocess(neontest.AsyncTestCase):
     def setUp(self):
         super(TestRequestPoolInSubprocess, self).setUp()
-        self.pool = utils.http.RequestPool(1, True)
+        self.pool = http.RequestPool(1, True)
         self.patcher = \
-          patch('utils.http.tornado.httpclient.AsyncHTTPClient')
+          patch('http.tornado.httpclient.AsyncHTTPClient')
         self.mock_client = self.patcher.start()().fetch
 
         self.response_q = multiprocessing.Queue()
-        logging.getLogger('utils.http').reset_sample_counters()
+        logging.getLogger('http').reset_sample_counters()
         
     def tearDown(self):
         self.patcher.stop()
@@ -539,7 +534,7 @@ class TestRequestPoolInSubprocess(test_utils.neontest.AsyncTestCase):
 
     @tornado.testing.gen_test
     def test_potential_deadlock_no_multiproc(self):
-        self.pool = utils.http.RequestPool(1, False)
+        self.pool = http.RequestPool(1, False)
         request, response = create_valid_ack()
 
         response_futures = [Future(), Future(), Future()]
@@ -573,5 +568,5 @@ class TestRequestPoolInSubprocess(test_utils.neontest.AsyncTestCase):
         
    
 if __name__ == '__main__':
-    utils.neon.InitNeon()
+    neon.InitNeon()
     unittest.main()

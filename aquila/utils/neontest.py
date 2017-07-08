@@ -16,14 +16,14 @@ import tornado.gen
 import tornado.ioloop
 import tornado.testing
 import unittest
-import utils.statemon
-import utils.sync
+import statemon
+import sync
 
 class TestCase(unittest.TestCase):
     '''Use this instead of the unittest one to get the extra functionality.'''
 
     def tearDown(self):
-        utils.statemon.state._reset_values()
+        statemon.state._reset_values()
 
     def assertRegexpMatches(self, subject, regexp, message=None):
         '''Always assert with case insensitivity.'''
@@ -107,7 +107,7 @@ class TestCase(unittest.TestCase):
                 '\n'.join(['%s: %s' % (x.levelname, x.getMessage())
                             for x in handler.logs])))
 
-    @utils.sync.optional_sync
+    @sync.optional_sync
     @tornado.gen.coroutine
     def assertWaitForEquals(self, func, expected, timeout=5.0):
         '''Waits for the result of a function to equal val.'''
@@ -234,7 +234,7 @@ class AsyncHTTPTestCase(tornado.testing.AsyncHTTPTestCase, TestCase):
     '''
     def setUp(self):
         tornado.testing.AsyncHTTPTestCase.setUp(self)
-        utils.statemon.state._reset_values()
+        statemon.state._reset_values()
 
     def tearDown(self):
         tornado.testing.AsyncHTTPTestCase.tearDown(self)

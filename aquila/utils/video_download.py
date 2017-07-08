@@ -3,11 +3,6 @@
 Copyright: 2016 Neon Labs
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 '''
-import os.path
-import sys
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..')))
-
 import boto.exception
 from boto.s3.connection import S3Connection
 import concurrent.futures
@@ -19,7 +14,6 @@ import subprocess
 import tempfile
 import tornado.gen
 import urlparse
-from utils.options import define, options
 import youtube_dl
 
 _log = logging.getLogger(__name__)

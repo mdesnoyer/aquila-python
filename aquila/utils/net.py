@@ -4,12 +4,6 @@ Utilities to deal with networking
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 Copyright 2015 Neon Labs
 '''
-import os.path
-import sys
-__base_path__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if sys.path[0] != __base_path__:
-    sys.path.insert(0, __base_path__)
-
 import logging
 import socket
 

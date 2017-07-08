@@ -9,25 +9,15 @@ especially using the __setstate__ function.
 Copyright: 2013 Neon Labs
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 '''
-import os.path
-import sys
-
 import dill as pickle
 import cv2
-from model import features
-from model import filters
+from . import features
+from . import filters
 import logging
-from model import predictor
-import utils.obj
-from utils import statemon
-from model import video_searcher
-from model import local_video_searcher
-from utils.options import options, define
-
-define('model_data_dir', 
-       default=os.path.join(os.path.dirname(__file__), '..', '..',
-                            'model_data'),
-       help='Directory where the model data is stored')
+from . import predictor
+from . import utils.obj
+from .utils import statemon
+from . import local_video_searcher
 
 _log = logging.getLogger(__name__)
 
@@ -195,11 +185,11 @@ def generate_model(filename, predictor):
 
 def save_custom_predictor(predictor, predictor_name):
     '''Save a custom predictor with a given name.'''
-    with open(os.path.join(options.model_data_dir, predictor_name), 'wb') as f:
+    with open(predictor_name, 'wb') as f:
         pickle.dump(predictor, f, 2)
 
 def load_custom_predictor(predictor_name):
     '''Loads a custom predictor.'''
-    with open(os.path.join(options.model_data_dir, predictor_name), 'rb') as f:
+    with open(predictor_name, 'rb') as f:
         pred = pickle.load(f)
     return pred

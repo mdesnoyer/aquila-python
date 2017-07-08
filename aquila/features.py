@@ -4,24 +4,21 @@
 Copyright: 2013 Neon Labs
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 '''
-import os.path
-import sys
 
 from collections import defaultdict
 import copy
 import cv2
 import hashlib
-import leargist
 import logging
 import numpy as np
 import os
 import os.path
 import utils.obj
 from utils import pycvutils
-import model.errors
-from model.colorname import ColorName
-from model.parse_faces import FindAndParseFaces
-from model.score_eyes import ScoreEyes
+import aquila.errors
+from .colorname import ColorName
+from .parse_faces import FindAndParseFaces
+from .score_eyes import ScoreEyes
 from scipy.stats import entropy
 
 _log = logging.getLogger(__name__)
@@ -115,7 +112,7 @@ class MovieMultipleFeatureGenerator(object):
                     cur_frame=cur_frame)
                 if not seek_sucess:
                     if cur_frame is None:
-                        raise model.errors.VideoReadError(
+                        raise aquila.errors.VideoReadError(
                             "Could not read the video")
                     break
                 first_move = False
@@ -239,28 +236,6 @@ class PredictedFeatureGenerator(FeatureGenerator):
     def hash_type(self, hashobj):
         hashobj.update(self.__class__.__name__)
         self.predictor.hash_type(hashobj)
-
-class GistGenerator(FeatureGenerator):
-    '''Class that generates GIST features.'''
-    def __init__(self, image_size=(144,256)):
-        super(GistGenerator, self).__init__()
-        self.image_size = image_size
-
-    def __cmp__(self, other):
-        typediff = cmp(self.__class__.__name__, other.__class__.__name__)
-        if typediff != 0:
-            return typediff
-        return cmp(self.image_size, other.image_size)
-
-    def __hash__(self):
-        return hash(self.image_size)
-
-    def generate(self, image):
-        # leargist needs a PIL image in RGB format
-        rimage = pycvutils.resize_and_crop(image, self.image_size[0],
-                                                 self.image_size[1])
-        pimage = pycvutils.to_pil(rimage)
-        return leargist.color_gist(pimage)
 
 class ColorNameGenerator(FeatureGenerator):
     '''Class that generates ColorName features.'''

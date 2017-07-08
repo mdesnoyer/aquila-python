@@ -4,15 +4,9 @@
 Copyright: 2013 Neon Labs
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 '''
-import os.path
-import sys
-__base_path__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if sys.path[0] != __base_path__:
-    sys.path.insert(0, __base_path__)
-
 import logging
 import model
-import model.features
+import features
 from optparse import OptionParser
 
 _log = logging.getLogger(__name__)
@@ -20,9 +14,9 @@ _log = logging.getLogger(__name__)
 def remove_disk_cache(obj):
     '''Recusively removes disk caches from the object.'''
     for name, val in obj.__dict__.items():
-        if isinstance(val, model.features.DiskCachedFeatures):
+        if isinstance(val, features.DiskCachedFeatures):
             obj.__dict__[name] = (
-                model.features.MemCachedFeatures.create_shared_cache(
+                features.MemCachedFeatures.create_shared_cache(
                 val.feature_generator))
         else:
             try:

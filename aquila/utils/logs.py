@@ -15,13 +15,6 @@ _log.error('Sad days. It is an error')
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 Copyright 2013 Neon Labs
 '''
-
-import os.path
-import sys
-__base_path__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if sys.path[0] != __base_path__:
-    sys.path.insert(0, __base_path__)
-
 import atexit
 import copy
 from cloghandler import ConcurrentRotatingFileHandler
@@ -37,10 +30,10 @@ import tornado.gen
 import tornado.httpclient
 import urllib
 import urllib2
-from utils import statemon
-import utils.sync
+from . import statemon
+from . import sync
 
-from utils.options import define, options
+from .options import define, options
 ### Options to define the root logger when AddConfiguredLogger is called ###
 define('file', default=None, type=str,
        help='File to output the default logs')
@@ -234,10 +227,10 @@ class TornadoHTTPHandler(logging.Handler):
         # imported earlier, then the log_n function is not available
         # to utils.http Yes, this is a circular dependency, but lets
         # live with this for now !
-        import utils.http
-        self.request_pool = utils.http.RequestPool(5)
+        from . import http
+        self.request_pool = http.RequestPool(5)
 
-        self.logging_thread = utils.sync.IOLoopThread(
+        self.logging_thread = sync.IOLoopThread(
             name='logs{%s}' % self.__class__)
         self.logging_thread.daemon = True
         self.logging_thread.start()

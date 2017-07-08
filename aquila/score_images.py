@@ -10,9 +10,6 @@ Output is a csv of <image_file>,<score>, sorted by score.
 Copyright: 2015 Neon Labs
 Author: Mark Desnoyer (desnoyer@neon-lab.com)
 '''
-import os.path
-import sys
-
 import cv2
 import logging
 import model

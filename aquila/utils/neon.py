@@ -28,15 +28,15 @@ def InitNeon(usage='%prog [options]'):
     '''
     garb, args = options.parse_options(usage=usage)
     logs.AddConfiguredLogger()
-    EnableRunningDebugging()
+    #EnableRunningDebugging()
 
     socket.setdefaulttimeout(30)
     if os.path.exists('/etc/ssl/certs/ca-certificates.crt'):
         tornado.httpclient.AsyncHTTPClient.configure(None, defaults=dict(
             ca_certs="/etc/ssl/certs/ca-certificates.crt"))
 
-    magent = monitor.MonitoringAgent()
-    magent.start()
+    #magent = monitor.MonitoringAgent()
+    #magent.start()
     return args
 
 def InitNeonTest():
